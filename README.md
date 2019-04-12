@@ -1,4 +1,4 @@
-# rofi-pass
+# rofi-pass with wl-clipboard
 
 A bash script to handle [Simple Password Store](http://www.passwordstore.org/)
 in a convenient way using [rofi](https://github.com/DaveDavenport/rofi).

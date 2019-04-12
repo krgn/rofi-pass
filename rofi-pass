@@ -23,9 +23,9 @@ default_autotype="user :tab pass"
 delay=2
 wait=0.2
 xdotool_delay=12
-default_do='menu' # menu, copyPass, typeUser, typePass, copyUser, copyUrl, viewEntry, typeMenu, actionMenu, copyMenu, openUrl
+default_do='copyPass' # menu, copyPass, typeUser, typePass, copyUser, copyUrl, viewEntry, typeMenu, actionMenu, copyMenu, openUrl
 auto_enter='false'
-notify='false'
+notify='true'
 help_color=""
 clip=primary
 clip_clear=45
@@ -69,11 +69,8 @@ list_passwords() {
 }
 
 doClip () {
-	case "$clip" in
-		"primary") xclip ;;
-		"clipboard") xclip -selection clipboard;;
-		"both") xclip; xclip -o | xclip -selection clipboard;;
-	esac
+	wl-copy -t "text/plain"
+	wl-paste | wl-copy -p -t "text/plain"
 }
 
 checkIfPass () {
@@ -245,9 +242,9 @@ copyPass () {
 	fi
 
 	if [[ $notify == "true" ]]; then
-		(sleep $clip_clear; printf '%s' "" | xclip; printf '%s' "" | xclip -selection clipboard | notify-send "rofi-pass" "Clipboard cleared") &
+		(sleep $clip_clear; wl-copy -p -c; wl-copy -c; notify-send "rofi-pass" "Clipboard cleared") &
 	elif [[ $notify == "false" ]]; then
-		(sleep $clip_clear; printf '%s' "" | xclip; printf '%s' "" | xclip -selection clipboard) &
+		(sleep $clip_clear; wl-copy -p -c; wl-copy -c)&
 	fi
 }
 
@@ -385,7 +382,7 @@ mainMenu () {
 		fields=$(printf '%s\n' "${password_temp[@]:1}" | awk '$1 ~ /:$/ || /otpauth:\/\// {$1=$1;print}')
 		declare -A stuff
 		stuff["pass"]=${password}
-	
+
 		if [[ -n $fields ]]; then
 			while read -r LINE; do
 				unset _id _val
@@ -607,9 +604,9 @@ showEntry () {
 				notify-send "rofi-pass" "Copied Password\\nClearing in $clip_clear seconds"
 			fi
 			if [[ $notify == "true" ]]; then
-				(sleep $clip_clear; printf '%s' "" | xclip; printf '%s' "" | xclip -selection clipboard | notify-send "rofi-pass" "Clipboard cleared") &
+				(sleep $clip_clear; printf '%s' "" | wl-copy; printf '%s' "" | wl-copy | notify-send "rofi-pass" "Clipboard cleared") &
 			elif [[ $notify == "false" ]]; 	then
-				(sleep $clip_clear; printf '%s' "" | xclip; printf '%s' "" | xclip -selection clipboard) &
+				(sleep $clip_clear; printf '%s' "" | wl-copy; printf '%s' "" | wl-copy) &
 			fi
 			exit
 		fi
@@ -670,7 +667,7 @@ listgpg () {
 }
 
 insertPass () {
-	url=$(xclip --selection clipboard -o)
+	url=$(wl-paste)
 
 	if [[ "${url:0:4}" == "http" ]]; then
 		domain_name="$(printf '%s\n' "${url}" | awk -F / '{l=split($3,a,"."); print (a[l-1]=="com"?a[l-2] OFS:X) a[l-1] OFS a[l]}' OFS=".")"
@@ -754,7 +751,7 @@ insertPass () {
 }
 
 help_msg () {
-	cat <<'EOF' 
+	cat <<'EOF'
 	Usage:
 	rofi-pass [command]
 
@@ -861,4 +858,3 @@ main () {
 }
 
 main "$@"
-
